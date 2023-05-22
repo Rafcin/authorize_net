@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="credit_card_payment_token_form_view" model="ir.ui.view">
+        <field name="name">credit.card.payment.token.form</field>
+        <field name="model">payment.token</field>
+        <field name="inherit_id" ref="payment.payment_token_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group col="4" invisible="not context.get('authorize', False) or (context.get('authorize', False) and not context.get('credit_card', False))">
+                    <field name="credit_card_no" placeholder="****************" required="context.get('credit_card', False)" attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name="credit_card_type"/>
+                    <field name="credit_card_expiration_month" required="context.get('credit_card', False)" attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name="credit_card_expiration_year" placeholder="****" required="context.get('credit_card', False)" attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name="credit_card_code" placeholder="***" required="context.get('credit_card', False)" attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name="billing_partner_id" context="{'default_type':'invoice', 'default_parent_id': partner_id}"/>
+                    <field name="company_id" required="context.get('credit_card', False)" groups="base.group_multi_company" attrs="{'readonly': [('provider_ref', '!=', False), ('provider_ref', '!=', 'dummy')]}"/>
+                    <field name="provider_ref" invisible="1"/>
+                    <field name="partner_id" invisible="1"/>
+                    <field name="provider_id" invisible="1"/>
+                    <field name="provider" invisible="1"/>
+                    <field name="customer_profile_id" force_save="1" readonly="1" invisible="1"/>
+                    <field name="update_value" invisible="1"/>
+                    <field name="authorize_card" invisible="1"/>
+                    <field name="partner_id" invisible="1"/>
+                </group>
+                <group col="4" invisible="not context.get('authorize', False) or (context.get('authorize', False) and not context.get('bank_account', False))">
+                    <field name='acc_number' required="context.get('bank_account', False)" attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name='bank_name' attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name='routing_number' required="context.get('bank_account', False)" attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name="provider_id" invisible="1"/>
+                    <field name="authorize_payment_method_type" invisible="1"/>
+                    <field name='owner_name' required="context.get('bank_account', False)" attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name='authorize_bank_type' required="context.get('bank_account', False)" attrs="{'readonly': [('update_value', '=', False), ('provider_ref', '!=', False)]}"/>
+                    <field name="company_id" groups="base.group_multi_company" attrs="{'readonly': [('provider_ref', '!=', False)]}"/>
+                    <field name="customer_profile_id" force_save="1" readonly="1" invisible="0"/>
+                    <field name="provider_ref" invisible="1"/>
+                    <field name="partner_id" invisible="1"/>
+                    <field name="provider_id" invisible="1"/>
+                    <field name="provider" invisible="1"/>
+                </group>
+                <group attrs="{'invisible': ['|', ('provider_ref', '=', 'dummy'), ('credit_card_expiration_month', '!=', 'xx')]}" invisible="not context.get('authorize', False) or (context.get('authorize', False) and not context.get('credit_card', False))">
+                    <button name="update_ccd_value" colspan="4" type="object" string="Update Card Details"/>
+                </group>
+                <group attrs="{'invisible': [('provider_ref', '=', 'dummy')]}" invisible="not context.get('authorize', False) or (context.get('authorize', False) and not context.get('bank_account', False))">
+                    <button name="update_acc_value" colspan="4" type="object" string="Update Bank Details"/>
+                </group>
+            </xpath>
+            <xpath expr="//group[1]" position="attributes">
+                <attribute name="invisible">context.get('authorize', False)</attribute>
+            </xpath>
+            <xpath expr="//group[2]" position="attributes">
+                <attribute name="invisible">context.get('authorize', False)</attribute>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="attributes">
+                <attribute name="invisible">context.get('authorize', False)</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

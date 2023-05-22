@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit account.payment.register view for add custom fields -->
+    <record id="authorize_net_view_account_payment_register_form" model="ir.ui.view">
+        <field name="name">account.payment.register.form.authorize_net</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+        <field name="arch" type="xml">
+            <field name="journal_id" position="attributes">
+                <attribute name="context">{'invoice_id': active_id, 'payment_authorize': payment_authorize}</attribute>
+            </field>
+            <field name="payment_method_line_id" position="after">
+                <field name="auth_partner_id" invisible="1" />
+                <field name="authorize_payment_type" invisible="1" />
+                <field name="payment_authorize" attrs="{'invisible':[
+                    '|', '|', '|',
+                    '&amp;', '&amp;',
+                    ('payment_method_code', '=', 'authorize'),
+                    ('customer_profile_id', '=', False),
+                    ('can_group_payments', '=', True),
+                    '&amp;',
+                    ('payment_method_code', '!=', 'authorize'),
+                    ('customer_profile_id', '=', False),
+                    '&amp;',
+                    ('payment_method_code', '!=', 'authorize'),
+                    ('payment_type', '=', 'inbound'),
+                    '&amp;',
+                    ('payment_method_code', '!=', 'authorize'),
+                    ('payment_type', '=', 'outbound'),
+                    ('is_refund_ref','=', False)
+                ]}"/>
+                <field name="is_wo_save_card" invisible="1"/>
+                <field name="is_wo_save_card" string="Direct payment (Without Save Card)" attrs="{'invisible':[
+                    '|',
+                    ('payment_authorize','=',False),
+                    '&amp;',
+                    ('payment_type', '=', 'outbound'),
+                    ('is_refund_ref','=', True)
+                ]}" groups="authorize_net.group_without_save_payment_options"/>
+            </field>
+            <label for="amount" position="attributes">
+                <attribute name="attrs">{'invisible': [
+                    '|', '|',
+                    ('can_edit_wizard', '=', False),
+                    '&amp;', ('can_group_payments', '=', True), ('group_payment', '=', False),
+                    '&amp;', ('payment_authorize','=',True), ('payment_type', '=', 'outbound')]}</attribute>
+            </label>
+            <xpath expr="//div[@name='amount_div']" position="attributes">
+                <attribute name="attrs">{'invisible': [
+                    '|', '|',
+                    ('can_edit_wizard', '=', False),
+                    '&amp;', ('can_group_payments', '=', True), ('group_payment', '=', False),
+                    '&amp;', ('payment_authorize','=',True), ('payment_type', '=', 'outbound')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_token_id']" position="attributes">
+                <attribute name="options">{'no_open': True, 'no_create': True}</attribute>
+                <attribute name="context">{'default_partner_id': partner_id, 'authorize': True, 'invoice_id': active_id, 'payment_authorize': payment_authorize, 'auth_partner_id': auth_partner_id, 'active_ids': active_ids, 'payment_method_code': payment_method_code, 'company_id': company_id, 'provider_id': provider_id}</attribute>
+                <attribute name="attrs">{
+                    'required': [
+                        '|',
+                        '&amp;', '&amp;',
+                        ('group_payment', '=', True),
+                        ('payment_method_code', '=', 'authorize'),
+                        ('is_wo_save_card', '=', False),
+                        '&amp;', '&amp;',
+                        ('is_wo_save_card', '=', False),
+                        ('payment_authorize','=',True),
+                        ('payment_type', '=', 'inbound')
+                    ],
+                    'invisible': [
+                        '|',
+                            '&amp;', '&amp;', '&amp;', '&amp;',
+                            ('is_wo_save_card', '=', True),
+                            ('payment_authorize', '=', False),
+                            ('group_payment', '=', True),
+                            ('can_group_payments', '=', True),
+                            ('use_electronic_payment_method', '=', False),
+                            '|', '|','|','|',
+                            ('is_wo_save_card', '=', True),
+                            ('use_electronic_payment_method', '=', False),
+                            '&amp;', '&amp;', '&amp;',
+                                ('group_payment', '=', False),
+                                ('payment_authorize', '=', False),
+                                ('use_electronic_payment_method', '=', True),
+                                ('payment_method_code', '=', 'authorize'),
+                            '&amp;', '&amp;', '&amp;',
+                                ('group_payment', '=', False),
+                                ('payment_authorize', '=', False),
+                                ('use_electronic_payment_method', '=', True),
+                                ('payment_method_code', '=', 'authorize'),
+                            '|',
+                                ('can_edit_wizard', '=', False),
+                                '&amp;',
+                                ('can_group_payments', '=', True),
+                                ('group_payment', '=', False)
+                    ]
+                }</attribute>
+            </xpath>
+            <field name="payment_method_line_id" position="attributes">
+                <attribute name="attrs">{'invisible':[('payment_authorize','=',True), ('payment_type', '=', 'outbound')]}</attribute>
+            </field>
+            <button name="action_create_payments" position="attributes">
+                <attribute name="context">{'group_payment': group_payment, 'payment_token_id': payment_token_id, 'payment_method_code': payment_method_code}</attribute>
+            </button>
+
+            <field name="communication" position="after">
+                <field name="is_refund_ref" invisible="1"/>
+                <field name="merchant_id" force_save="1" attrs="{'invisible':['|', ('payment_authorize', '=', False), ('merchant_id', '=', False)]}"/>
+                <field name="customer_profile_id" force_save="1" attrs="{'invisible':[
+                    '|',
+                    '|',
+                        ('payment_authorize','=',False),
+                        ('customer_profile_id', '=', False),
+                        ('payment_type', '=', 'outbound')
+                ]}"/>
+                <field name="shipping_address_id" force_save="1" attrs="{'invisible':['|', ('payment_authorize', '=', False), ('shipping_address_id', '=', False)]}"/>
+                <field name="company_id" attrs="{'invisible':[('payment_authorize', '=', False)]}"/>
+                <field name="provider_id" force_save="1" readonly="1" attrs="{'invisible':['|', ('payment_authorize', '=', False), ('provider_id', '=', False)]}"/>
+            </field>
+
+            <xpath expr="//group" position="after">
+                <separator string="Credit Card Details" attrs="{'invisible': [('is_wo_save_card', '=', False)]}"/>
+                <group col="4">
+                    <field name="cc_number" placeholder="****************" attrs="{'required': [('is_wo_save_card', '=', True)], 'invisible': [('is_wo_save_card', '=', False)]}"/>
+                    <field name="cc_type" attrs="{'invisible': [('is_wo_save_card', '=', False)]}"/>
+                    <field name="cc_month" placeholder="**" attrs="{'required': [('is_wo_save_card', '=', True)], 'invisible': [('is_wo_save_card', '=', False)]}"/>
+                    <field name="cc_year" placeholder="****" attrs="{'required': [('is_wo_save_card', '=', True)], 'invisible': [('is_wo_save_card', '=', False)]}"/>
+                    <field name="cc_cvv" placeholder="****" attrs="{'required': [('is_wo_save_card', '=', True)], 'invisible': [('is_wo_save_card', '=', False)]}"/>
+                    <field name="billing_partner_id" context="{'default_type':'invoice', 'default_parent_id': partner_id}" attrs="{'invisible': [('is_wo_save_card', '=', False)]}"/>
+                </group>
+                <separator string="Credit Transaction" attrs="{'invisible': [
+                    '|',
+                        ('payment_authorize', '=', False),
+                        ('payment_type', '=', 'inbound'),
+                        ('partner_type', '=', 'customer')]}"/>
+                <field name="auth_invoice_refund_ids" colspan="4" attrs="{'invisible': [
+                    '|',
+                        ('payment_authorize', '=', False),
+                        ('payment_type', '=', 'inbound'),
+                        ('partner_type', '=', 'customer')]}" nolabel="1" options="{'no_open':True, 'no_create':True}" widget="one2many_list">
+                    <tree editable="top" create="false" delete="true">
+                        <field name="partner_id" invisible="1"/>
+                        <field name="transaction_id" readonly="1"/>
+                        <field name="payment_token_id" readonly="1"/>
+                        <field name="credit_amount" readonly="1" sum="Amount"/>
+                        <field name="refund_amount" sum="Amount" required="1"/>
+                        <field name="currency_id" options="{'no_open': True, 'no_create': True}" required="1"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="provider_id" invisible="1"/>
+                    </tree>
+                </field>
+            </xpath>
+        </field>
+    </record>
+</odoo>
